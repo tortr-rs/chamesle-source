@@ -79,7 +79,7 @@ os.makedirs(work, exist_ok=True)
 os.system('cp %s/out/init %s/out/ex1.1strings %s/' % (ROOT, ROOT, work))
 script = ('mount -t tmpfs t /etc && cp %s/vi/ttycap /etc/ttycap && mount -t tmpfs t /tmp && '
           'mount -t tmpfs t /usr/include && cp %s/c.h /usr/include/ && cd %s && exec -a aex ./init' % (ROOT, ROOT, work))
-screen = Screen(80, 24)
+screen = Screen(80, 25)
 stream = screen
 pid, fd = pty.fork()
 if pid == 0:
@@ -101,7 +101,8 @@ def pump(t):
 
 pump(1.5)
 for keys in sys.argv[1:]:
-    for ch in keys.encode().decode('unicode_escape').encode('latin1'):
+    # \n in KEYS is the Enter key, which sends a carriage return, as on a real terminal
+    for ch in keys.encode().decode('unicode_escape').replace('\n', '\r').encode('latin1'):
         os.write(fd, bytes([ch]))
         pump(0.02)
     pump(0.6)

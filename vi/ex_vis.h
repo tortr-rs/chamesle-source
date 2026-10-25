@@ -22,9 +22,13 @@ int	vlast;
 
 #define vputc(c)	putc(c, &obuf)
 
-#define	TUBELINES	24
+/*
+ * Chamesle Source: 25 lines, the Linux console's 80x25, where 1977's
+ * terminals had 24.
+ */
+#define	TUBELINES	25
 #define	TUBECOLS	160
-#define	TUBESIZE	1920
+#define	TUBESIZE	2000
 
 char	vliny[TUBELINES + 2];
 int	vcline, vcnt;

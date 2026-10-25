@@ -17,4 +17,4 @@ ti|ti700|ti|ti733:0151440:0020332:co#80:bs:os
 t3|teletype|tty|33|35:0157440:0020336:co#72
 t7|tty37|37:0:0:bs:os:hu?:hd?:up?
 un|unknown|u:0:0:
-li|linux|Linux console:0:0:li#24:co#80:cl=\E[H\E[J:nd=\E[C:up=\E[A:ce=\E[K:bs:ca
+li|linux|Linux console:0:0:li#25:co#80:cl=\E[H\E[J:nd=\E[C:up=\E[A:ce=\E[K:bs:ca
