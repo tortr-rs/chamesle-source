@@ -9,7 +9,7 @@ getargs()
 {
 	register c;
 	register char *cp, *fp;
-	int *dp, *gp;
+	char **dp, **gp;
 
 	cp = linebuf, dp = genbuf;
 	for (;;) {

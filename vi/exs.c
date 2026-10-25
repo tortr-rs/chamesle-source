@@ -277,7 +277,7 @@ ovflo:
 			error("Line overflow@in substitute - limit 512 chars");
 	}
 	lp = loc2;
-	loc2 = sp + linebuf - genbuf;
+	loc2 = linebuf + (sp - genbuf);
 	while (*sp++ = *lp++)
 		if (sp >= &genbuf[LBSIZE])
 			goto ovflo;

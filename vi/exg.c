@@ -94,7 +94,7 @@ save(a1, a2)
 		if (dest >= endcore) {
 			if (sbrk(1024) == -1)
 				error("Out of memory@saving lines for undo - try using ed or re)");
-			endcore.integer += 1024;
+			endcore = (int *)((char *)endcore + 1024);
 		}
 	undkind = UNDALL;
 	unddel = a1 - 1;

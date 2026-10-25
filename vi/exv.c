@@ -6,6 +6,18 @@
  * Bill Joy UCB June 1977
  */
 
+STATIC	int vzcnt;
+
+vzero()
+{
+
+	if (vzcnt)
+		return (EOF);
+	vzcnt++;
+	linebuf[0] = 0;
+	return (0);
+}
+
 vop()
 {
 #ifndef VISUAL
@@ -30,6 +42,17 @@ vop()
 	setdot();
 	if (addr2 == zero && dol > zero)
 		addr1 = one, addr2 = one;
+	/*
+	 * Chamesle Source: an empty buffer gets one empty line,
+	 * as 2BSD's fixzero does, so there is somewhere to start.
+	 */
+	if (dol == zero) {
+		lines = chngflag;
+		vzcnt = 0;
+		append(vzero, zero);
+		chngflag = lines;
+		addr1 = addr2 = one;
+	}
 	nonzero();
 	c = getchar();
 	switch (c) {

@@ -513,6 +513,18 @@ dorecover:
 			lchngflag = chngflag;
 			continue;
 		case 'w':
+			/*
+			 * Chamesle Source: wq writes the file, then wqrun
+			 * compiles it with tcc and runs it in ex's place.
+			 */
+			if (peekchar() == 'q') {
+				getchar();
+				setall();
+				wop();
+				flush();
+				wqrun(file);
+				error("Didn't compile@- fix it and wq again");
+			}
 			tail("write");
 			setall();
 			wop();

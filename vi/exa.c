@@ -29,7 +29,7 @@ append(f, a)
 				}
 				error("Out of memory@- too many lines in file");
 			}
-			endcore.integer += 1024;
+			endcore = (int *)((char *)endcore + 1024);
 		}
 		nline++;
 		a1 = unddol + 1;

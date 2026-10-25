@@ -5,8 +5,8 @@
 struct varbl {
 	char	*vname[2];
 	char	vtype;
-	int	vdefault;
-	int	vvalue;
+	long	vdefault;
+	long	vvalue;
 } varbls[];
 #define	value(a)	varbls[a].vvalue
 

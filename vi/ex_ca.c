@@ -24,7 +24,8 @@ canCA()
 
 cgoto()
 {
-	static char result[10];
+	static char result[16];
+	register char *cp;
 
 	switch (TTY) {
 
@@ -42,9 +43,36 @@ cgoto()
 		result[7] = destline % 10 + '0';
 		break;
 #endif
+	case ('l' | 'i' << 8):
+		/*
+		 * Chamesle Source: the Linux console, an ANSI
+		 * terminal. ESC [ line ; column H, from 1.
+		 */
+		cp = result;
+		*cp++ = '\033';
+		*cp++ = '[';
+		cp = cgonum(cp, destline + 1);
+		*cp++ = ';';
+		cp = cgonum(cp, destcol + 1);
+		*cp++ = 'H';
+		*cp = 0;
+		break;
 	default:
 		strcpy(result, "OOPS");
 		break;
 	}
 	return (result);
+}
+
+cgonum(cp, n)
+	register char *cp;
+	register int n;
+{
+
+	if (n >= 100)
+		*cp++ = n / 100 + '0';
+	if (n >= 10)
+		*cp++ = n / 10 % 10 + '0';
+	*cp++ = n % 10 + '0';
+	return (cp);
 }

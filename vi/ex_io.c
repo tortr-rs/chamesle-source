@@ -309,7 +309,7 @@ getblock(atl, iof)
 		error(" Tmp file too large");
 	nleft = 512 - off;
 	if (bno == iblock) {
-		ichanged |= iof;
+		ichanged |= (long)iof;
 		return (ibuff + off);
 	}
 	if (bno == oblock)
@@ -349,7 +349,7 @@ synctmp()
 	time(&header.Atime);
 	header.Auid = getuid() & mask;
 	*zero = header.Atime[1];
-	for (a = zero, bp = blocks; a <= dol; a += 256, bp++) {
+	for (a = zero, bp = blocks; a <= dol; a += 512 / sizeof *a, bp++) {
 		if (*bp < 0) {
 			tline = (tline + 0177) &~ 0177;
 			*bp = ((tline >> 7) & 0777);
@@ -358,7 +358,7 @@ synctmp()
 			bp[1] = -1;
 		}
 		seek(tfile, *bp, 3);
-		cnt = (dol - a + 2) << 1;
+		cnt = (dol - a + 2) * sizeof *a;
 		if (cnt > 512)
 			cnt = 512;
 		if (write(tfile, a, cnt) != cnt) {

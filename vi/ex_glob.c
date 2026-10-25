@@ -255,7 +255,7 @@ toolong:
 
 
 scan(t, f)
-	register int *t;
+	register char **t;
 	int (*f)();
 {
 	register char *p, c;
@@ -283,7 +283,7 @@ trim(c)
 getone()
 {
 	register char *str;
-	int gv[2], *lp;
+	char *gv[2], **lp;
 	struct Glob G;
 
 	switch (getargs()) {

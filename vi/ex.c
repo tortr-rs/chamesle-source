@@ -10,6 +10,7 @@
 
 int	vyancnt;
 char	endline = 1;
+char	ivis = 1;
 
 /*
  * Ex uses a modified C runtime startup which allocates
@@ -111,6 +112,23 @@ top:
 		}
 		init();
 		setexit();
+		if (ivis) {
+			/*
+			 * Chamesle Source: ex is PID 1, and starts in
+			 * visual, as vi does from 2BSD on, with these lines
+			 * of 2BSD's ex.c: "visual" is the first command,
+			 * after reading the file if there is one.
+			 */
+			ivis = 0;
+			globp = "visual";
+			if (setexit() == 0)
+				commands(inite == -2 ? -1 : 1, 1);
+			inite = 0;
+			ungetchar(0);
+			globp = 0;
+			setlastchar('\n');
+			setexit();
+		}
 		for(;;) {
 			if (inite)
 				inite++;

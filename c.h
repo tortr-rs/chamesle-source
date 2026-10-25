@@ -86,6 +86,9 @@ __asm__(".text\n.global sys6\nsys6:\n"
 #define SYS_getpid 39
 #define SYS_chdir 80
 #define SYS_creat 85
+#define SYS_chmod 90
+#define SYS_pipe 22
+#define SYS_dup 32
 #define SYS_getuid 102
 
 /* errno: the libc keeps the last error here. one program, one thread: a plain variable does it */
@@ -142,6 +145,9 @@ time_t time(time_t *t) { time_t now = sys1(SYS_time, 0); if (t) *t = now; return
 long sysconf(int name) { return name == _SC_PAGESIZE ? 4096 : -1; }
 int creat(const char *path, mode_t mode) { return fail(sys2(SYS_creat, path, mode)); }
 int chdir(const char *path) { return fail(sys1(SYS_chdir, path)); }
+int chmod(const char *path, mode_t mode) { return fail(sys2(SYS_chmod, path, mode)); }
+int dup(int fd) { return fail(sys1(SYS_dup, fd)); }
+int pipe(int fd[2]) { return fail(sys1(SYS_pipe, fd)); }
 pid_t getpid(void) { return sys0(SYS_getpid); }
 int getuid(void) { return sys0(SYS_getuid); }
 pid_t wait(int *status) { return waitpid(-1, status, 0); }

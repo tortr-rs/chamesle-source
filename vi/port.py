@@ -72,6 +72,9 @@ def convert(text):
 
 
 def main():
+    # vi/ has hand changes on top of what this writes: running it again would overwrite them
+    if os.path.exists(os.path.join(HERE, 'ex.c')) and '--again' not in sys.argv:
+        sys.exit('vi/ is already ported and changed by hand since: --again overwrites it with the plain conversion')
     files = [os.path.join(SRC, n) for n in sorted(os.listdir(SRC)) if n.endswith(('.c', '.h'))]
     files += [os.path.join(LIBX, n) for n in ('ttycap.c', 'ttycap2.c')]
     for path in files:
