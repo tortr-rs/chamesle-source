@@ -1,0 +1,4 @@
+ex 1.1 (with its visual mode, the first vi), Bill Joy, UC Berkeley, 1977.
+From the 1BSD distribution tape: https://www.tuhs.org/Archive/Distributions/UCB/1BSD/1bsd.tar.gz
+(ex-1.1/cont.a, a PDP-11 Unix archive, unpacked as-is into third/ex-1.1/).
+The early BSD distributions are under the BSD license of the Regents of the University of California.
