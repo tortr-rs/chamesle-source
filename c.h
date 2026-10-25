@@ -78,6 +78,15 @@ __asm__(".text\n.global sys6\nsys6:\n"
 #define SYS_mount 165
 #define SYS_time 201
 #define SYS_gettimeofday 96
+#define SYS_stat 4
+#define SYS_fstat 5
+#define SYS_brk 12
+#define SYS_rt_sigaction 13
+#define SYS_rt_sigreturn 15
+#define SYS_getpid 39
+#define SYS_chdir 80
+#define SYS_creat 85
+#define SYS_getuid 102
 
 /* errno: the libc keeps the last error here. one program, one thread: a plain variable does it */
 int errno;
@@ -131,6 +140,94 @@ int mount(const char *src, const char *dst, const char *type, unsigned long flag
 char *getcwd(char *buf, size_t n) { return fail(sys2(SYS_getcwd, buf, n)) < 0 ? NULL : buf; }
 time_t time(time_t *t) { time_t now = sys1(SYS_time, 0); if (t) *t = now; return now; }
 long sysconf(int name) { return name == _SC_PAGESIZE ? 4096 : -1; }
+int creat(const char *path, mode_t mode) { return fail(sys2(SYS_creat, path, mode)); }
+int chdir(const char *path) { return fail(sys1(SYS_chdir, path)); }
+pid_t getpid(void) { return sys0(SYS_getpid); }
+int getuid(void) { return sys0(SYS_getuid); }
+pid_t wait(int *status) { return waitpid(-1, status, 0); }
+
+/* the end of the data segment, the "break". brk(p) moves it to p, sbrk(n) moves it n bytes and returns where it was */
+static char *cur_brk;
+int brk(void *p)
+{
+    char *r = (char *)sys1(SYS_brk, p);
+    cur_brk = r;
+    if (r != p) { errno = ENOMEM; return -1; }
+    return 0;
+}
+void *sbrk(long n)
+{
+    char *old;
+    if (!cur_brk) cur_brk = (char *)sys1(SYS_brk, 0);
+    old = cur_brk;
+    if (n && brk(old + n) < 0) return (void *)-1;
+    return old;
+}
+
+/* ---- files' details ---- */
+struct stat {
+    unsigned long st_dev, st_ino, st_nlink;
+    unsigned int st_mode, st_uid, st_gid, pad0;
+    unsigned long st_rdev;
+    long st_size, st_blksize, st_blocks;
+    unsigned long st_atime, st_atime_nsec, st_mtime, st_mtime_nsec, st_ctime, st_ctime_nsec;
+    long unused[3];
+};
+#define S_IFMT 0170000
+#define S_IFDIR 0040000
+#define S_IFCHR 0020000
+#define S_IFREG 0100000
+#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
+int stat(const char *path, struct stat *st) { return fail(sys2(SYS_stat, path, st)); }
+int fstat(int fd, struct stat *st) { return fail(sys2(SYS_fstat, fd, st)); }
+
+/* ---- the terminal ---- */
+struct termios { unsigned int c_iflag, c_oflag, c_cflag, c_lflag; unsigned char c_line, c_cc[19]; };
+#define TCGETS 0x5401
+#define TCSETSW 0x5403
+#define VINTR 0
+#define VQUIT 1
+#define VERASE 2
+#define VKILL 3
+#define VEOF 4
+#define VTIME 5
+#define VMIN 6
+#define ICRNL 0400
+#define IXON 02000
+#define OPOST 01
+#define ONLCR 04
+#define TAB3 014000
+#define ISIG 01
+#define ICANON 02
+#define ECHO 010
+#define IEXTEN 0100000
+int tcgetattr(int fd, struct termios *t) { return ioctl(fd, TCGETS, t); }
+int tcsetattr(int fd, int when, struct termios *t) { (void)when; return ioctl(fd, TCSETSW, t); }
+int isatty(int fd) { struct termios t; return tcgetattr(fd, &t) == 0; }
+
+/* ---- signals ----
+ * signal(n, f): f runs when signal n comes. SIG_DFL (0) puts back what the kernel does, SIG_IGN (1) ignores it.
+ * the kernel needs a way back from f: restore_rt, which asks it to carry on where the signal hit */
+typedef void (*sighandler_t)(int);
+#define SIG_DFL ((sighandler_t)0)
+#define SIG_IGN ((sighandler_t)1)
+#define SIG_ERR ((sighandler_t)-1)
+#define SIGHUP 1
+#define SIGINT 2
+#define SIGQUIT 3
+#define SIGKILL 9
+#define SIGTERM 15
+#define SIGCHLD 17
+void c_restore_rt(void);
+__asm__(".text\n.global c_restore_rt\nc_restore_rt:\n mov $15,%rax\n syscall\n");
+struct c_sigaction { sighandler_t handler; unsigned long flags; void (*restorer)(void); unsigned long mask; };
+sighandler_t signal(int n, sighandler_t f)
+{
+    struct c_sigaction new = { f, 0x04000000 | 0x10000000 /* restorer, restart */, c_restore_rt, 0 }, old;
+    if (fail(sys6(SYS_rt_sigaction, n, (long)&new, (long)&old, 8, 0, 0)) < 0) return SIG_ERR;
+    return old.handler;
+}
 __attribute__((noreturn)) void _exit(int code) { for (;;) sys1(SYS_exit, code); }
 
 /* ---- characters ---- */
@@ -627,6 +724,17 @@ char *getenv(const char *name)
     size_t l = strlen(name); char **e;
     for (e = environ; e && *e; e++) if (!strncmp(*e, name, l) && (*e)[l] == '=') return *e + l + 1;
     return NULL;
+}
+/* execl(path, arg0, arg1, ..., 0): execve with the arguments written out */
+int execl(const char *path, const char *arg, ...)
+{
+    char *argv[64]; int n = 0; va_list ap;
+    argv[n++] = (char *)arg;
+    va_start(ap, arg);
+    while (n < 63 && (argv[n] = va_arg(ap, char *))) n++;
+    va_end(ap);
+    argv[n] = NULL;
+    return execve(path, argv, environ);
 }
 /* execve, looking through $PATH when the name has no / in it */
 int execvp(const char *file, char *const argv[])

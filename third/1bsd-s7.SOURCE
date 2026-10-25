@@ -1,0 +1,3 @@
+libX, the editor database routines ex 1.1 was linked against (ttycap.c is Bill Joy's terminal capability code,
+September 1977). From the 1BSD tape, s7/cont.a, unpacked as-is into third/1bsd-s7/:
+https://www.tuhs.org/Archive/Distributions/UCB/1BSD/1bsd.tar.gz
