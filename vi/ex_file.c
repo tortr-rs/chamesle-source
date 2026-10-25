@@ -50,5 +50,5 @@ filename(comm)
 	} else
 		printf("No file ");
 	if (comm == 'f')
-		printf(mesg(" %d lin%c@in buffer"), dol - zero, dol == one ? 'e' : 'es');
+		printf(mesg(" %d lin%c@in buffer"), dol - zero, dol == one ? 'e' : ('e' | 's' << 8));
 }

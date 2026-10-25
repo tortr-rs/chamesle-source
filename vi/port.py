@@ -6,12 +6,15 @@
 #   - initializers had no "=": "int lines 24;", "char name[] "text";", "struct x y[] { ... };"
 #   - CTRL(x) put its argument inside a character constant, which only the old preprocessor did
 #   - STATIC was an empty #define, "extern int x 1;" a definition with a value
+#   - 'ca', two characters in one constant: the PDP-11 kept the first in the low byte, gcc puts it in the high one
+# it converts ex 1.1 and, from libX on the same tape, Bill Joy's ttycap.c, the terminal capability code ex used
 import os
 import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, '../third/ex-1.1')
+LIBX = os.path.join(HERE, '../third/1bsd-s7')
 
 
 def code_spans(text):
@@ -56,6 +59,8 @@ def convert(text):
         if is_code:
             piece = compound(piece)
             piece = CTRL.sub(r"CTRL('\1')", piece)
+        elif re.fullmatch(r"'[^\\']{2}'", piece):
+            piece = "('%s' | '%s' << 8)" % (piece[1], piece[2])
         out.append(piece)
     text = ''.join(out)
     # initializers: only at the left margin, where the top-level declarations are
@@ -67,10 +72,11 @@ def convert(text):
 
 
 def main():
-    for name in sorted(os.listdir(SRC)):
-        if not name.endswith(('.c', '.h')):
-            continue
-        with open(os.path.join(SRC, name), encoding='latin1') as f:
+    files = [os.path.join(SRC, n) for n in sorted(os.listdir(SRC)) if n.endswith(('.c', '.h'))]
+    files += [os.path.join(LIBX, n) for n in ('ttycap.c', 'ttycap2.c')]
+    for path in files:
+        name = os.path.basename(path)
+        with open(path, encoding='latin1') as f:
             text = f.read()
         with open(os.path.join(HERE, name), 'w', encoding='latin1') as f:
             f.write(convert(text))

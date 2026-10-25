@@ -238,7 +238,7 @@ setcol(col)
 	/*
 	 * ADM3A special - fix tabs
 	 */
-	if (TTY == 'ca' && (del <= -4 || del >= 4)) {
+	if (TTY == ('c' | 'a' << 8) && (del <= -4 || del >= 4)) {
 		del -= 3;
 		del &= 07;
 		if (del < 0)

@@ -28,13 +28,13 @@ cgoto()
 
 	switch (TTY) {
 
-	case 'ca':
+	case ('c' | 'a' << 8):
 		strcpy(result, "\033=xx");
 		result[2] = destline + ' ';
 		result[3] = destcol + ' ';
 		break;
 #ifdef UNIMP
-	case 'cH':
+	case ('c' | 'H' << 8):
 		strcpy(result, "\033&axxcyyY");
 		result[3] = destcol / 10 + '0';
 		result[4] = destcol % 10 + '0';
