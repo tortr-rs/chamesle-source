@@ -117,12 +117,17 @@ top:
 			 * Chamesle Source: ex is PID 1, and starts in
 			 * visual, as vi does from 2BSD on, with these lines
 			 * of 2BSD's ex.c: "visual" is the first command,
-			 * after reading the file if there is one.
+			 * after reading the file if there is one. a new
+			 * file is an error to ex 1.1, but it keeps the name
+			 * and goes on to visual all the same.
 			 */
 			ivis = 0;
+			globp = "";
+			if (inite == -2 && setexit() == 0)
+				commands(-1, 1);
 			globp = "visual";
 			if (setexit() == 0)
-				commands(inite == -2 ? -1 : 1, 1);
+				commands(1, 1);
 			inite = 0;
 			ungetchar(0);
 			globp = 0;

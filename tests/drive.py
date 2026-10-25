@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# drive.py KEYS...: runs the built vi (out/init) here, in a pseudo-terminal, types each KEYS argument (waiting a
+# drive.py KEYS...: runs the built vi (out/init) here (with $ARGS as its arguments), in a pseudo-terminal, types each KEYS argument (waiting a
 # little after each), and prints the screen. a test without qemu: a private mount namespace gives it /etc/ttycap,
 # argv[0] "aex" makes it read its messages from ./ex1.1strings, as ex did when it was called that.
 # Screen below is a small terminal, just enough for the screen to be read back
@@ -78,7 +78,7 @@ work = os.path.join(ROOT, 'out/drive')
 os.makedirs(work, exist_ok=True)
 os.system('cp %s/out/init %s/out/ex1.1strings %s/' % (ROOT, ROOT, work))
 script = ('mount -t tmpfs t /etc && cp %s/vi/ttycap /etc/ttycap && mount -t tmpfs t /tmp && '
-          'mount -t tmpfs t /usr/include && cp %s/c.h /usr/include/ && cd %s && exec -a aex ./init' % (ROOT, ROOT, work))
+          'mount -t tmpfs t /usr/include && cp %s/c.h /usr/include/ && cd %s && exec -a aex ./init %s' % (ROOT, ROOT, work, os.environ.get('ARGS', '')))
 screen = Screen(80, 25)
 stream = screen
 pid, fd = pty.fork()
