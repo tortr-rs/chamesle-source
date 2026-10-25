@@ -13,6 +13,9 @@
 #define	fstat(f, b)	v6fstat(f, b)
 #define	printf		v6printf
 
+/* quitting: v6.c's v6quit, which powers off when ex is PID 1 */
+#define	exit(n)		v6quit(n)
+
 /* the V6 linker read 7 characters of a name: ex calls vrestore, and the vrestor in ex_vmain.c was the same */
 #define	vrestore	vrestor
 

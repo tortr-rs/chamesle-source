@@ -82,6 +82,10 @@ script = ('mount -t tmpfs t /etc && cp %s/vi/ttycap /etc/ttycap && mount -t tmpf
 screen = Screen(80, 25)
 stream = screen
 pid, fd = pty.fork()
+if pid:
+    # the size of the screen, as the kernel tells it, like the Linux console
+    import fcntl, struct, termios
+    fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack('HHHH', 25, 80, 0, 0))
 if pid == 0:
     os.environ.clear()
     os.environ.update({'TERM': 'linux', 'PATH': '/usr/bin:/bin'})

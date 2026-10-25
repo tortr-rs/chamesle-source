@@ -42,9 +42,18 @@ Setterm(type, printerr)
 	LINES = tgetnum("li");
 	if (LINES <= 0)
 		LINES = 24;
+	/*
+	 * Chamesle Source: the Linux console is as big as its screen, so
+	 * the kernel's size goes before ttycap's. visual holds 100 lines and
+	 * 160 columns: on a wider screen ex starts the next line at 160.
+	 */
+	if (ttysize(0) > 0)
+		LINES = ttysize(0) > 100 ? 100 : ttysize(0);
 	varbls[WINDOW].vvalue = varbls[WINDOW].vdefault = LINES - 1;
 	varbls[SCROLL].vvalue = varbls[SCROLL].vdefault = LINES / 2;
 	COLUMNS = tgetnum("co");
+	if (ttysize(1) > 0)
+		COLUMNS = ttysize(1) > 160 ? 160 : ttysize(1);
 	if (COLUMNS <= 20)
 		COLUMNS = 1000;
 /*

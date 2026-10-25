@@ -15,6 +15,7 @@ __attribute__((aligned(16), used)) char v6stack[1 << 20];
 static char v6glob[2048] __attribute__((aligned(16))); /* ex_glob.h's struct Glob: the arguments the "next" command globs */
 static char v6args[4096], *v6argv[64];
 int main();
+void v6quit(int code);
 
 __attribute__((used)) static void v6start(long *sp)
 {
@@ -29,10 +30,21 @@ __attribute__((used)) static void v6start(long *sp)
     xargc0 = i;
     xargv0 = v6argv;
     G = v6glob;
-    exit(main());
+    v6quit(main());
 }
 __asm__(".text\n.global _start\n_start:\n xor %rbp,%rbp\n mov %rsp,%rdi\n lea v6stack+1048576(%rip),%rsp\n"
         " call v6start\n hlt\n");
+
+/* quitting ex. as PID 1 it is the last program running, and when PID 1 exits Linux panics: so quitting there
+ * writes out what the disks still hold and turns the machine off */
+void v6quit(int code)
+{
+    if (getpid() == 1) {
+        sys6(162 /* sync */, 0, 0, 0, 0, 0, 0);
+        sys6(169 /* reboot */, 0xfee1dead, 672274793, 0x4321fedc /* power off */, 0, 0, 0);
+    }
+    exit(code);
+}
 
 /* ---- setexit and reset ---- */
 long v6exit[8];
@@ -85,6 +97,14 @@ char *hsgettype(void)
 }
 char *hgethome(void) { return c_strcpy(v6home, "/"); }
 int hgetuid(void) { return 0; }
+
+/* the size of the terminal from the kernel: ttysize(0) its lines, ttysize(1) its columns, 0 if it doesn't know */
+int ttysize(int which)
+{
+    unsigned short ws[4];
+    if (ioctl(1, 0x5413 /* TIOCGWINSZ */, ws) < 0) return 0;
+    return ws[which];
+}
 
 /* ---- files ---- */
 /* the entry ttycap.c found: a libX global, defined in a file that isn't on the tape */
