@@ -10,6 +10,11 @@ it in vi's place. If it doesn't compile, you stay in vi and see why.
 The libc is c.h, one file. There is no init, no shell and no tools. You
 write them.
 
+fbttywm comes with it, as source in /usr/src. Write a shell, the commands,
+wget and tar, fetch a compiler with them, then build it:
+
+	gcc -static -O2 /usr/src/fbttywm.c -o /fbttywm
+
 The easy distro is Chamesle Linux: https://chamesle.org
 Nobody should use this one for anything real.
 
@@ -47,5 +52,6 @@ Files
 	vi/              ex 1.1, and sys.c, the glue to tcc and the kernel
 	vi/port.py       turned the 1977 C into C compilers read today, once
 	mkinitramfs.py   the initramfs, without cpio
+	fbttywm/         windows, once you've earned gcc: /usr/src/fbttywm.c
 	third/           ex 1.1 and libX as they are on the tape
 	tests/           vi in a pty on the host, and c.h's tests

@@ -34,7 +34,7 @@ ld -static -nostdlib -no-pie --no-warn-mismatch -o out/init out/vi/*.o 2>&1 | gr
 # the kernel and the FAT modules: to install with, for a disk that UEFI boots needs FAT.
 # e1000 is qemu's network card, for wget
 python3 mkinitramfs.py out/initramfs.cpio out/init usr/lib/ex1.1strings=out/ex1.1strings etc/ttycap=vi/ttycap \
-    usr/include/c.h=c.h tmp/ boot/vmlinuz="$KERNEL" lib/modules/fat.ko.zst="$MODULES/kernel/fs/fat/fat.ko.zst" \
+    usr/include/c.h=c.h usr/src/fbttywm.c=fbttywm/fbttywm.c tmp/ boot/vmlinuz="$KERNEL" lib/modules/fat.ko.zst="$MODULES/kernel/fs/fat/fat.ko.zst" \
     lib/modules/vfat.ko.zst="$MODULES/kernel/fs/fat/vfat.ko.zst" \
     lib/modules/e1000.ko.zst="$MODULES/kernel/drivers/net/ethernet/intel/e1000/e1000.ko.zst"
 [ "${1:-}" = build ] && exit 0
