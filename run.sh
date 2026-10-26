@@ -31,22 +31,24 @@ $CC -std=gnu17 -O2 -w -fno-builtin -ffreestanding -nostdinc -fno-stack-protector
     -DCONFIG_TCC_BACKTRACE=0 -DCONFIG_TCC_BCHECK=0 -c vi/sys.c -o out/vi/sys.o
 ld -static -nostdlib -no-pie --no-warn-mismatch -o out/init out/vi/*.o 2>&1 | grep -v "size of symbol\|size discrepancies" || true
 
-# the kernel and the FAT modules: to install with, for a disk that UEFI boots needs FAT
+# the kernel and the FAT modules: to install with, for a disk that UEFI boots needs FAT.
+# e1000 is qemu's network card, for wget
 python3 mkinitramfs.py out/initramfs.cpio out/init usr/lib/ex1.1strings=out/ex1.1strings etc/ttycap=vi/ttycap \
     usr/include/c.h=c.h tmp/ boot/vmlinuz="$KERNEL" lib/modules/fat.ko.zst="$MODULES/kernel/fs/fat/fat.ko.zst" \
-    lib/modules/vfat.ko.zst="$MODULES/kernel/fs/fat/vfat.ko.zst"
+    lib/modules/vfat.ko.zst="$MODULES/kernel/fs/fat/vfat.ko.zst" \
+    lib/modules/e1000.ko.zst="$MODULES/kernel/drivers/net/ethernet/intel/e1000/e1000.ko.zst"
 [ "${1:-}" = build ] && exit 0
 if [ "${1:-}" = disk ]; then
     [ -e out/disk.img ] || truncate -s 256M out/disk.img
-    exec $QEMU -enable-kvm -m 256 -kernel "$KERNEL" -initrd out/initramfs.cpio -append "quiet" \
+    exec $QEMU -enable-kvm -m 2048 -kernel "$KERNEL" -initrd out/initramfs.cpio -append "quiet" \
         -drive file=out/disk.img,format=raw,if=virtio
 fi
 if [ "${1:-}" = installed ]; then
     [ -e out/vars.fd ] || cp "$FIRMWARE/edk2-i386-vars.fd" out/vars.fd
-    exec $QEMU -enable-kvm -m 256 -drive if=pflash,format=raw,readonly=on,file="$FIRMWARE/edk2-x86_64-code.fd" \
+    exec $QEMU -enable-kvm -m 2048 -drive if=pflash,format=raw,readonly=on,file="$FIRMWARE/edk2-x86_64-code.fd" \
         -drive if=pflash,format=raw,file=out/vars.fd -drive file=out/disk.img,format=raw,if=virtio
 fi
 if [ "${1:-}" = serial ]; then
-    exec $QEMU -enable-kvm -m 256 -kernel "$KERNEL" -initrd out/initramfs.cpio -nographic -append "console=ttyS0 quiet"
+    exec $QEMU -enable-kvm -m 2048 -kernel "$KERNEL" -initrd out/initramfs.cpio -nographic -append "console=ttyS0 quiet"
 fi
-exec $QEMU -enable-kvm -m 256 -kernel "$KERNEL" -initrd out/initramfs.cpio -append "quiet"
+exec $QEMU -enable-kvm -m 2048 -kernel "$KERNEL" -initrd out/initramfs.cpio -append "quiet"
